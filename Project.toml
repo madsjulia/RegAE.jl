@@ -1,0 +1,15 @@
+name = "RegAE"
+uuid = "9beeafbe-7d8a-11e9-116f-91246b213426"
+authors = ["Daniel O'Malley <omalled@lanl.gov>"]
+version = "0.1.0"
+
+[deps]
+ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
+GeostatInversion = "acd30bff-8734-59b1-86d1-c3ef2efb63d6"
+Images = "916415d5-f1e6-5110-898d-aaa5f9f070e0"
+JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
+Knet = "1902f260-5fb4-5aff-8c31-6271790ab950"
+MAT = "23992714-dd62-5051-b70f-ba57cb901cac"
+ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
