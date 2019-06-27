@@ -37,4 +37,4 @@ notifications:
 #   $ - julia -e 'ENV["MADS_NO_PYTHON"]=""; ENV["MADS_NO_PLOT"]=""; Pkg.build("Mads"); Pkg.test("Mads"; coverage=true)'
 #   - julia -e 'ENV["MADS_TRAVIS"]=""; Pkg.build("Mads"); Pkg.test("Mads"; coverage=true)'
 after_success:
-  - julia -e 'cd(Pkg.dir("RegAE")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder()); Codecov.submit(Codecov.process_folder())'
+  - julia -e 'import RegAE; joinpath(dirname(pathof(RegAE)); Pkg.add("Coverage"); import Coverage; Coveralls.submit(Coveralls.process_folder()); Codecov.submit(Codecov.process_folder())'
