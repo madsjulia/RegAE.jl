@@ -50,8 +50,13 @@ function gradient(z, objfunc, h)
 	return (ofs[1:end - 1] .- ofs[end]) ./ h
 end
 
-function optimize(ae::Autoencoder, objfunc, options; h=1e-4)
+function optimize(ae::Autoencoder, objfunc, options; h=1e-4, p0=false)
 	objfunc_z = z->sum(z .^ 2) + objfunc(z2p(ae, z))
+	if p0 == false
+		z0 = zeros(size(ae.theta[1], 2))
+	else
+		z0 = p2z(ae, p)
+	end
 	opt = Optim.optimize(objfunc_z, z->gradient(z, objfunc_z, h), zeros(size(ae.theta[1], 2)), Optim.LBFGS(), options; inplace=false)
 	return z2p(ae, opt.minimizer), opt
 end
