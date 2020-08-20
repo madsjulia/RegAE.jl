@@ -57,7 +57,7 @@ function optimize(ae::Autoencoder, objfunc, options; h=1e-4, p0=false)
 	else
 		z0 = p2z(ae, p0)
 	end
-	opt = Optim.optimize(objfunc_z, z->gradient(z, objfunc_z, h), zeros(size(ae.theta[1], 2)), Optim.LBFGS(), options; inplace=false)
+	opt = Optim.optimize(objfunc_z, z->gradient(z, objfunc_z, h), z0, Optim.LBFGS(), options; inplace=false)
 	return z2p(ae, opt.minimizer), opt
 end
 
