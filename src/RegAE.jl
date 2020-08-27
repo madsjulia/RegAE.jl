@@ -32,7 +32,7 @@ function Autoencoder(datafilename::String, vaefilename::String, vaeargs::String;
 end
 
 function p2z(ae::Autoencoder, p)
-	encode(ae.phi, reshape(p, size(p)..., 1))[1]#deterministic encoding
+	return encode(ae.phi, reshape((p .- ae.lowend) ./ (ae.highend - ae.lowend), size(p)..., 1))[1]#deterministic encoding
 end
 
 function z2p(ae::Autoencoder, z)
