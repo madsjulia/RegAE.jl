@@ -61,4 +61,15 @@ function optimize(ae::Autoencoder, objfunc, options; h=1e-4, p0=false)
 	return z2p(ae, opt.minimizer), opt
 end
 
+function optimize_zygote(ae::Autoencoder, objfunc, options; h=1e-4, p0=false)
+	objfunc_z = z->sum(z .^ 2) + objfunc(z2p(ae, z))
+	if p0 == false
+		z0 = zeros(size(ae.theta[1], 2))
+	else
+		z0 = p2z(ae, p0)
+	end
+	opt = Optim.optimize(objfunc_z, z->Zygote.gradient(objfunc_z, z), z0, Optim.LBFGS(), options; inplace=false)
+	return z2p(ae, opt.minimizer), opt
+end
+
 end
