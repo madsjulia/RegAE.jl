@@ -4,6 +4,7 @@ using FileIO, Knet, ArgParse, Images, Random, Statistics
 import Distributed
 import JLD2
 import Optim
+import Zygote
 
 include("vae.jl")
 
@@ -68,7 +69,7 @@ function optimize_zygote(ae::Autoencoder, objfunc, options; h=1e-4, p0=false)
 	else
 		z0 = p2z(ae, p0)
 	end
-	opt = Optim.optimize(objfunc_z, z->Zygote.gradient(objfunc_z, z), z0, Optim.LBFGS(), options; inplace=false)
+	opt = Optim.optimize(objfunc_z, z->Zygote.gradient(objfunc_z, z)[1], z0, Optim.LBFGS(), options; inplace=false)
 	return z2p(ae, opt.minimizer), opt
 end
 
