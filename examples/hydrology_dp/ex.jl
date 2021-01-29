@@ -109,7 +109,7 @@ for i_p in 1:size(p_trues, 1)
 			function gethead(p)
 				loghycos = p
 				neighborhycos = logKs2Ks_neighbors(loghycos)
-				head = DPFEHM.groundwater_steadystate(neighborhycos, neighbors, areasoverlengths, dirichletnodes, dirichletheads, sources; tol=1e-12)
+				head = DPFEHM.groundwater_steadystate(neighborhycos, neighbors, areasoverlengths, dirichletnodes, dirichletheads, sources; reltol=1e-12)
 				if maximum(head) > lefthead || minimum(head) < righthead
 					error("problem with solution -- head out of range")
 				end
