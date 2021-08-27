@@ -1,8 +1,10 @@
 using Distributed
+@everywhere using Flux
 using LaTeXStrings
-import NNlib
+@everywhere import NNlib
 import Optim
 import PyPlot
+@everywhere import RegAE
 import StatsBase
 import Zygote
 
@@ -12,17 +14,43 @@ if !isfile(datafilename)
 	if nworkers() == 1
 		error("Please run in parallel: julia -p 32")
 	end
-	numsamples = 10^5
+	numsamples = 10^6
 	@time allloghycos = SharedArrays.SharedArray{Float32}(numsamples, ns[2], ns[1]; init=A->samplehyco!(A; setseed=true))
 	@time @JLD2.save datafilename allloghycos
 end
 
 @everywhere function trainvae(latent_dim)
 	CUDA.device!(mod(myid(), length(CUDA.devices())))
-	RegAE.Autoencoder(datafilename, variablename; model_path="$(results_dir)/vae_nz$(latent_dim).bson", opt=Flux.ADAM(1e-3), epochs=100, seed=1, latent_dim=latent_dim, hidden_dim=5 * latent_dim, input_dim=10^4, batch_size=100, image_dir="images_$(latent_dim)")
+	hidden_dim = 5 * latent_dim
+	encoder = RegAE.Encoder(Chain(x->reshape(x, 100, 100, 1, size(x, 2)),
+								  Conv((4, 4), 1 => 32, relu; stride = 2, pad = 1),
+								  Conv((4, 4), 32 => 32, relu; stride = 2, pad = 1),
+								  Conv((4, 4), 32 => 32, relu; stride = 2, pad = 1),
+								  Flux.flatten,
+								  Dense(12 * 12 * 32, 256, relu),
+								  Dense(256, hidden_dim, relu)),
+							Dense(hidden_dim, latent_dim),
+							Dense(hidden_dim, latent_dim))
+	decoder = Chain(Dense(latent_dim, hidden_dim, relu),
+					Dense(hidden_dim, 256, relu),
+					Dense(256, 4608, relu),
+					x->reshape(x, 12, 12, 32, :),
+					ConvTranspose((4, 4), 32 => 32, relu; stride = 2, pad = 1),
+					ConvTranspose((4, 4), 32 => 32, relu; stride = 2, pad = 0),
+					ConvTranspose((4, 4), 32 => 1; stride = 2, pad = 1),
+					Flux.flatten)
+	x = RegAE.Autoencoder(datafilename, variablename; model_path="$(results_dir)/vae_nz$(latent_dim).bson", opt=Flux.ADAM(1e-3), epochs=100, seed=1, latent_dim=latent_dim, hidden_dim=hidden_dim, input_dim=10^4, batch_size=100, image_dir="$(results_dir)/images_cvae_$(latent_dim)", encoder=encoder, decoder=decoder, results_dir=results_dir)
+	return x
 end
 latent_dims = [25, 50, 100, 200]
-pmap(trainvae, latent_dims)
+if length(CUDA.devices()) > nworkers()
+	error("Now you want to run this part with julia -p $(length(CUDA.devices()))")
+end
+try
+	pmap(trainvae, latent_dims)
+catch
+	map(trainvae, latent_dims)
+end
 
 @everywhere Random.seed!(0)
 p_trues = Array(SharedArrays.SharedArray{Float32}(3, ns[2], ns[1]; init=samplehyco!))
